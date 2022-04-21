@@ -4,9 +4,10 @@ pipeline {
     stage('build') {
       when {
         anyOf {
-          branch "main*"; 
+          branch "master"; 
           changeRequest()
         }
+      }
       steps {
         echo 'It\'s main or pull request!'
       }
