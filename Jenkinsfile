@@ -2,10 +2,14 @@ pipeline {
   agent any
   stages {
     stage('build') {
+      when {
+        anyOf {
+          branch "main*"; 
+          changeRequest()
+        }
       steps {
-        echo 'Hello World!'
+        echo 'It\'s main or pull request!'
       }
     }
-
   }
 }
