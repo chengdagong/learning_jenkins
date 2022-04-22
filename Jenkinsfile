@@ -9,8 +9,8 @@ pipeline {
       steps {
         script {
           pullRequest.createStatus(status: 'failure',
-                           context: 'continuous-integration/jenkins/pr-merge/validate-title',
-                           description: 'Invalid Title Format',
+                           context: 'ci/jenkins/pr-merge/validate-title',
+                           description: 'The title must be following such format: v[major].[minor].[patch] - [comment]',
                            targetUrl: "${env.JOB_URL}/pipeline")
         }
         error 'The title must be following such format: v[major].[minor].[patch] - [comment]'
