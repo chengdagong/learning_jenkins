@@ -4,13 +4,13 @@ pipeline {
     stage('pre-build') {
       when {
         changeRequest target: 'main'
-        expression {!(pullRequest.title=~"v\\d+\\.\\d+\\.\\d+ - .+")}
+        expression {!(pullRequest.title=~"(v\\d+\\.\\d+\\.\\d+ - .+)|(TOOLCHAIN - .+)")}
       }
       steps {
         script {
           pullRequest.createStatus(status: 'failure',
                            context: 'ci/jenkins/pr-merge/validate-title',
-                           description: 'The title must follow format: v[major].[minor].[patch] - [summary]',
+                           description: 'The title must follow format v[major].[minor].[patch] - [summary] or TOOLCHAIN - [summary]',
                            targetUrl: "${env.JOB_URL}/pipeline")
         }
         error 'The title must be following such format: v[major].[minor].[patch] - [comment]'
