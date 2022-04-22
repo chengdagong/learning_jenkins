@@ -9,7 +9,7 @@ pipeline {
       steps {
         script {
           pullRequest.createStatus(status: 'failure',
-                           context: 'continuous-integration/jenkins/pr-merge',
+                           context: 'continuous-integration/jenkins/pr-merge/validate-title',
                            description: 'Invalid Title Format',
                            targetUrl: "${env.JOB_URL}/pipeline")
         }
