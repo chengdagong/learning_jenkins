@@ -3,8 +3,8 @@ pipeline {
   stages {
     stage('pre-build') {
       when {
-        changeRequest target: "master"
-        //changeRequest title: "v\\d+\\.\\d+\\.\\d+ - .+", comparator: 'REGEXP'
+        changeRequest target: 'main'
+        expression {!(pullRequest.title=~"v\\d+\\.\\d+\\.\\d+ - .+")}
       }
       steps {
         error 'The title must be following such format: v[major].[minor].[patch] - [comment]'
