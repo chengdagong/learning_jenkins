@@ -13,7 +13,7 @@ pipeline {
         script {
           def status = 'success'
           def description = 'Succeeded'
-          if (!(pullRequest.title=~CODE_UPDATE_PR_TITLE | pullRequest.title=~BUILD_CONFIG_UPDATE_PR_TITLE)) {
+          if (!(pullRequest.title=~CODE_UPDATE_PR_TITLE || pullRequest.title=~BUILD_CONFIG_UPDATE_PR_TITLE)) {
             status = 'failure'
             description = 'The title must follow format v[major].[minor].[patch] - [summary] or TOOLCHAIN - [summary]'
           } 
