@@ -10,7 +10,7 @@ pipeline {
         script {
           pullRequest.createStatus(status: 'failure',
                            context: 'ci/jenkins/pr-merge/validate-title',
-                           description: 'The title must follow such format: v[major].[minor].[patch] - [comment]',
+                           description: 'The title must follow format: v[major].[minor].[patch] - [summary]',
                            targetUrl: "${env.JOB_URL}/pipeline")
         }
         error 'The title must be following such format: v[major].[minor].[patch] - [comment]'
