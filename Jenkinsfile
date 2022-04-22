@@ -21,8 +21,8 @@ pipeline {
           pullRequest.createStatus(status: status,
                            context: 'ci/jenkins/pr-merge/validate-title',
                            description: description,
-                           targetUrl: "${env.JOB_URL}")
-          bat "set"
+                           targetUrl: "${env.RUN_DISPLAY_URL}")
+          
           if (status == 'failure') {
             error description
           }
