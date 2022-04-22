@@ -7,10 +7,12 @@ pipeline {
         expression {!(pullRequest.title=~"v\\d+\\.\\d+\\.\\d+ - .+")}
       }
       steps {
-        pullRequest.createStatus(status: 'failure',
-                         context: 'continuous-integration/jenkins/pr-merge',
-                         description: 'Invalid Title Format',
-                         targetUrl: "${env.JOB_URL}/pipeline")
+        script {
+          pullRequest.createStatus(status: 'failure',
+                           context: 'continuous-integration/jenkins/pr-merge',
+                           description: 'Invalid Title Format',
+                           targetUrl: "${env.JOB_URL}/pipeline")
+        }
         error 'The title must be following such format: v[major].[minor].[patch] - [comment]'
       }
     }
