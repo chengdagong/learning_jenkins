@@ -2,7 +2,7 @@ pipeline {
   agent any
   environment {
     CODE_UPDATE_PR_TITLE = "v\\d+\\.\\d+\\.\\d+ - .+"
-    BUILD_CONFIG_UPDATE_PR_TITLE = "TOOLCHAIN - .+"
+    BUILD_CONFIG_UPDATE_PR_TITLE = "CONFIGUPDATE - .+"
   }
   stages {
     stage('validate-title') {
@@ -15,7 +15,7 @@ pipeline {
           def description = 'Succeeded'
           if (!(pullRequest.title=~CODE_UPDATE_PR_TITLE || pullRequest.title=~BUILD_CONFIG_UPDATE_PR_TITLE)) {
             status = 'failure'
-            description = 'The title must follow format v[major].[minor].[patch] - [summary] or TOOLCHAIN - [summary]'
+            description = 'The title must follow format v[major].[minor].[patch] - [summary] or CONFIGUPDATE - [summary]'
           } 
 
           pullRequest.createStatus(status: status,
