@@ -1,16 +1,15 @@
-def updateGithubCommitStatus(context, failureReason) {
-  // workaround https://issues.jenkins-ci.org/browse/JENKINS-38674
+def updateGithubCommitStatus() {
   step([
     $class: 'GitHubCommitStatusSetter',
     reposSource: [$class: "ManuallyEnteredRepositorySource", url: env.GIT_URL],
     commitShaSource: [$class: "ManuallyEnteredShaSource", sha: env.GIT_COMMIT],
-    contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/" + context],
+    contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins"],
     errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
     statusResultSource: [
       $class: 'ConditionalStatusResultSource',
       results: [
         [$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: 'This commit looks good'],
-        [$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: failureReason],
+        [$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: env.FAILURE_REASON],
         [$class: 'AnyBuildResult', state: 'FAILURE', message: 'Loophole']
       ]
     ]
@@ -20,9 +19,9 @@ def updateGithubCommitStatus(context, failureReason) {
 pipeline {
   agent any
   environment {
-    CODE_UPDATE_PR_TITLE = "v\\d+\\.\\d+\\.\\d+ - .+"
-    BUILD_CONFIG_UPDATE_PR_TITLE = "CONFIGUPDATE - .+"
-    FAILURE_REASON = 'The title should be in format ...'
+      CODE_UPDATE_PR_TITLE = "(MAJOR|MINOR|PATCH) - .*"
+      BUILD_CONFIG_UPDATE_PR_TITLE = "CONFIGUPDATE - .+"
+      FAILURE_REASON = 'The title must follow format [MAJOR/MINOR/PATCH] - [summary] or CONFIGUPDATE - [summary]'
   }
   stages {
     stage('validate-title') {
@@ -30,10 +29,9 @@ pipeline {
         changeRequest target: 'main'
       }
       steps {
-        bat "set"
         script {
           if (!(pullRequest.title=~CODE_UPDATE_PR_TITLE || pullRequest.title=~BUILD_CONFIG_UPDATE_PR_TITLE)) {
-            error "PR title not valid"
+            error env.FAILURE_REASON
           } 
 
         }
@@ -55,7 +53,7 @@ pipeline {
   
   post {
       always {
-          updateGithubCommitStatus('pr-merge', env.FAILURE_REASON)
+          updateGithubCommitStatus()
       }
   }
 }
