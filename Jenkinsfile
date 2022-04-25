@@ -1,3 +1,12 @@
+def getVersionFromTag() {
+    def tag = bat(returnStdout: true, script: 'git describe --tags').split()[-1]
+    def ret = []
+    for (String v in tag.substring(1).split("\\.")) {
+        ret.add(Integer.parseInt(v))
+    }
+    return ret
+}
+
 def updateGithubCommitStatus() {
   step([
     $class: 'GitHubCommitStatusSetter',
@@ -40,13 +49,31 @@ pipeline {
     
     stage('build') {
       when {
-        anyOf {
-          branch "master"; 
-          changeRequest()
-        }
+        branch "main"
+        not {changeRequest()}
       }
       steps {
-        echo 'It\'s main or pull request!'
+        script {
+            def message = bat(returnStdout: true, script: 'git log -1').split('\n')[-1].trim()
+            println bat(returnStdout: true, script: 'git fetch --prune origin "+refs/tags/*:refs/tags/*"')
+            println bat(returnStdout: true, script: 'git tag --points-at HEAD')
+            def version = getVersionFromTag()
+            if (message.indexOf('MAJOR') == 0) {
+                version[0]++
+            } else if (message.indexOf('MINOR') == 0) {
+                version[1]++
+            } else if (message.indexOf('PATCH') == 0) {
+                version[2]++
+            }
+                
+            if (version != getVersionFromTag()) {
+                def newTag = "v${version[0]}.${version[1]}.${version[2]}"
+                withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'holly-shit', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]) {
+                        //bat("git tag ${newTag}")
+                        //bat("git push https://${env.GIT_USERNAME}:${env.GIT_PASSWORD}@${GIT_URL.substring(8)} --tags")
+                }
+            }
+        }
       }
     }
   }
