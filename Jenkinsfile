@@ -1,10 +1,24 @@
-def getVersionFromTag() {
-    def tag = bat(returnStdout: true, script: 'git describe --tags').split()[-1]
+def getScriptOutput(content) {
+    def output = bat(returnStdout: true, script: content)
+    return output.substring(output.indexOf(content) + content.length()).trim()
+}
+
+def getLatestReleseVersion() {
+    def tag = getScriptOutput('git tag -l v*.*.*').split()[-1]
     def ret = []
     for (String v in tag.substring(1).split("\\.")) {
         ret.add(Integer.parseInt(v))
     }
     return ret
+}
+
+def tagExistsForCurrentHead() {
+    def output = getScriptOutput('git tag --points-at HEAD')
+    if (output) {
+        return true
+    } else {
+        return false
+    }
 }
 
 def updateGithubCommitStatus() {
@@ -54,23 +68,23 @@ pipeline {
       }
       steps {
         script {
-            def message = bat(returnStdout: true, script: 'git log -1').split('\n')[-1].trim()
-            println bat(returnStdout: true, script: 'git fetch --prune origin "+refs/tags/*:refs/tags/*"')
-            println bat(returnStdout: true, script: 'git tag --points-at HEAD')
-            def version = getVersionFromTag()
-            if (message.indexOf('MAJOR') == 0) {
-                version[0]++
-            } else if (message.indexOf('MINOR') == 0) {
-                version[1]++
-            } else if (message.indexOf('PATCH') == 0) {
-                version[2]++
-            }
-                
-            if (version != getVersionFromTag()) {
-                def newTag = "v${version[0]}.${version[1]}.${version[2]}"
-                withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'holly-shit', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]) {
-                        //bat("git tag ${newTag}")
-                        //bat("git push https://${env.GIT_USERNAME}:${env.GIT_PASSWORD}@${GIT_URL.substring(8)} --tags")
+            if (!tagExistsForCurrentHead()) {
+                def message = bat(returnStdout: true, script: 'git log -1').split('\n')[-1].trim()
+                def version = getLatestReleseVersion()
+                if (message.indexOf('MAJOR') == 0) {
+                    version[0]++
+                } else if (message.indexOf('MINOR') == 0) {
+                    version[1]++
+                } else if (message.indexOf('PATCH') == 0) {
+                    version[2]++
+                }
+                    
+                if (version != getLatestReleseVersion()) {
+                    def newTag = "v${version[0]}.${version[1]}.${version[2]}"
+                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'holly-shit', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]) {
+                            bat("git tag ${newTag}")
+                            bat("git push https://${env.GIT_USERNAME}:${env.GIT_PASSWORD}@${GIT_URL.substring(8)} --tags")
+                    }
                 }
             }
         }
